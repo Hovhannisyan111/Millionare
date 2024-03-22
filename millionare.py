@@ -1,21 +1,23 @@
 import random
 
-def mill(file, num_questions=10):
-    name = input("Enter your name: ")
+def get_content(fname):
+    with open(fname) as f:
+        return f.readlines()
 
-    with open('questions.txt', 'r') as f:
-        questions = f.readlines()
-
+def select_questions(questions, num_questions):
     ind = random.sample(range(len(questions)), num_questions)
-    quests = [questions[i].strip() for i in ind]
+    quest = [questions[i].strip() for i in ind]
+    return quest
 
+def define_questions(quest):
     questions_dict = {}
-    for question in quests:
+    for question in quest:
         q, a = question.split("?")
         questions_dict[q] = a.split(",")
+    return questions_dict
 
+def ask_questions(questions_dict):
     count = 0
-
     for q, a in questions_dict.items():
         print(q + "?")
         correct = a[0]
@@ -27,11 +29,52 @@ def mill(file, num_questions=10):
             print("Correct")
             count += 1
         else:
-            print("Wrong. The correct answer was:", correct)
+            print("Wrong. The correct answer is:", correct)
+    return count
 
-    print("You got %d/%d" % (count, len(questions_dict)))
+def player_dict(ml):
+    tmp = {}
+    tmp["name"] = ml[0]
+    tmp["score"] = ml[1]
+    return tmp
 
-    with open('top.txt', 'a') as top:
-        top.write(f"{name}: {count}/{len(questions_dict)}\n")
+def players_list(content):
+    players = []
+    for line in content:
+        player = line.strip().split()
+        if len(player) >= 2:
+            players.append(player_dict(player))
+    players.sort(key=lambda x: int(x["score"].split("/")[0]), reverse=True)
+    return players
 
-mill('questions.txt')
+def write_into_file(fname, players):
+    players.sort(key=lambda x: int(x["score"].split("/")[0]), reverse=True)
+    with open(fname, "w") as fw:
+        for player in players:
+            data = list(player.values())
+            line = " ".join([str(el) for el in data])
+            fw.write(line + "\n")
+
+def player_name():
+    valid_name = False
+    while not valid_name:
+        name = input("Enter your name: ")
+        if name.isalpha():
+            valid_name = True 
+        else:
+            print("Enter your real name: ")
+    return name
+
+def mill(fname, num_questions=10):
+    name = player_name()
+    questions = get_content(fname)
+    quest = select_questions(questions, num_questions)
+    questions_dict = define_questions(quest)
+    score = ask_questions(questions_dict)
+    content = get_content("top.txt")
+    p_list = players_list(content)
+    p_list.append({"name": name, "score": f"{score}/{len(questions_dict)}"})
+    write_into_file("top.txt", p_list)
+
+mill("questions.txt")
+
