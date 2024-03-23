@@ -65,7 +65,7 @@ def player_name():
             print("Enter your real name: ")
     return name
 
-def mill(fname, num_questions=10):
+def main(fname, num_questions=10):
     name = player_name()
     questions = get_content(fname)
     quest = select_questions(questions, num_questions)
@@ -76,5 +76,6 @@ def mill(fname, num_questions=10):
     p_list.append({"name": name, "score": f"{score}/{len(questions_dict)}"})
     write_into_file("top.txt", p_list)
 
-mill("questions.txt")
+if __name__ == "__main__":
+    main("questions.txt")
 
